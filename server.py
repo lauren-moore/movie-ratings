@@ -1,6 +1,6 @@
 """Server for movie ratings app."""
 from flask import Flask, render_template, request, flash, session, redirect
-from model import connect_to_db
+from model import db, connect_to_db
 from jinja2 import StrictUndefined
 import crud
 
@@ -50,6 +50,25 @@ def show_user(user_id):
     user = crud.get_user_by_id(user_id)
 
     return render_template('user_details.html', user=user)
+
+@app.route("/users", methods=["POST"])
+def register_user():
+    """Create a new user."""
+
+    email = request.form.get("email")
+    password = request.form.get("password")
+
+    user = crud.get_user_by_email(email)
+
+    if user:
+         flash("Cannot create an account with that email. Try again.")
+    else:
+        user = crud.create_user(email, password)
+        db.session.add(user)
+        db.session.commit()
+        flash("Account created! Please log in.")
+
+    return redirect("/")
 
 if __name__ == "__main__":
     # DebugToolbarExtension(app)
